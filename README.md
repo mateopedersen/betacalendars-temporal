@@ -11,7 +11,8 @@ Application code often needs more than a month matrix: it needs explicit overflo
 ### Pixi
 
 ```sh
-pixi add --channel https://prefix.dev/mateopedersen/betacalendars betacalendars-temporal
+pixi workspace channel add --prepend https://prefix.dev/conda-forge https://prefix.dev/mateopedersen/betacalendars
+pixi add betacalendars-temporal
 ```
 
 ### Conda or Mamba
