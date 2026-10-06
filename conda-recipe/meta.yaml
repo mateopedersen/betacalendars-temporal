@@ -12,7 +12,9 @@ source:
 build:
   number: 0
   noarch: python
-  script: {{ PYTHON }} -m pip install . --no-deps --no-build-isolation -vv
+  script:
+    - pip install . --no-deps --no-build-isolation --no-compile -vv
+    - python -c "from importlib.metadata import distribution; from pathlib import Path; (Path(distribution('betacalendars-temporal')._path) / 'direct_url.json').unlink(missing_ok=True)"
   entry_points:
     - betacal = betacalendars.cli:main
 
