@@ -38,10 +38,11 @@ jobs:
           pytest
 
       - name: Set up Rattler-Build
-        uses: prefix-dev/rattler-build-action@v0.2.34
-
-      - name: Build the pinned release source
-        run: rattler-build build --recipe recipe.yaml --channel conda-forge --output-dir output
+        uses: prefix-dev/rattler-build-action@v0.2.39
+        with:
+          recipe-path: recipe.yaml
+          build-args: --channel conda-forge --output-dir output
+          upload-artifact: false
 
       - name: Test and record the Conda artifact
         run: |
