@@ -1,11 +1,20 @@
 # Conda package
 
-The public package is distributed from the Beta Calendars Anaconda.org channel as `betacalendars-temporal`. Install it with:
+`betacalendars-temporal` is published as a `noarch: python` package in the public Beta Calendars Prefix.dev channel. Python 3.11 or later is required; the package has no runtime dependencies beyond Python.
+
+With Pixi:
 
 ```sh
-conda install betacalendars::betacalendars-temporal
+pixi add --channel https://prefix.dev/mateopedersen/betacalendars betacalendars-temporal
 ```
 
-The Conda recipe is in `conda-recipe/meta.yaml`. The package is `noarch: python`, uses Python 3.11 or later, and has no runtime dependencies beyond Python.
+With Conda or Mamba:
 
-For a local release build, keep Conda auto-upload disabled. Build the recipe, then run `python scripts/sanitize_conda_artifact.py PATH_TO_PACKAGE.conda` on the generated archive. This removes pip's source-location record and build-machine bytecode and paths from the published artifact. Install and exercise that exact sanitized file in a fresh environment before uploading it to Anaconda.org's `test` label; only promote the tested file to `main`.
+```sh
+conda install --override-channels \
+  -c https://prefix.dev/mateopedersen/betacalendars \
+  -c conda-forge \
+  betacalendars-temporal
+```
+
+The Rattler-Build recipe is [`recipe.yaml`](../recipe.yaml). The release workflow builds and tests that recipe against the immutable GitHub release source, then publishes the package to `mateopedersen/betacalendars` with OIDC and a Sigstore attestation.

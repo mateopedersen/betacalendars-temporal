@@ -1,0 +1,61 @@
+schema_version: 1
+
+context:
+  name: betacalendars-temporal
+  version: "0.1.0"
+
+package:
+  name: ${{ name }}
+  version: ${{ version }}
+
+source:
+  url: https://github.com/mateopedersen/betacalendars-temporal/releases/download/v${{ version }}/betacalendars_temporal-${{ version }}.tar.gz
+  sha256: 786b88b2e58d879e78f871546a2872f286a09c13722b353aec7e686c0c90dbe5
+
+build:
+  number: 0
+  noarch: python
+  python:
+    entry_points:
+      - betacal = betacalendars.cli:main
+  script:
+    - python -m pip install . --no-deps --no-build-isolation --no-compile -vv
+    - python -c "from importlib.metadata import distribution; from pathlib import Path; (Path(distribution('betacalendars-temporal')._path) / 'direct_url.json').unlink(missing_ok=True)"
+
+requirements:
+  host:
+    - python >=3.11
+    - pip
+    - setuptools >=68
+  run:
+    - python >=3.11
+
+tests:
+  - python:
+      imports:
+        - betacalendars
+  - script:
+      - betacal --help
+      - betacal --version
+      - betacal month 2027 1 --format json
+      - betacal year 2027 --format json
+      - betacal boundaries 2027
+
+about:
+  homepage: https://www.betacalendars.com/
+  repository: https://github.com/mateopedersen/betacalendars-temporal
+  documentation: https://github.com/mateopedersen/betacalendars-temporal#readme
+  license: MIT
+  license_file: LICENSE
+  summary: Calendar grids, recurrence helpers and date-boundary utilities for Python.
+  description: |
+    A small presentation-neutral calendar engine built on Python's standard
+    date types. It provides deterministic month and year grids, configurable
+    week starts, overflow cells, ISO-week metadata, inclusive date ranges,
+    bounded recurrence, business-day helpers, validation, and offline JSON,
+    CSV, Markdown, and command-line output. Runtime dependencies are limited
+    to Python; the package makes no network calls and collects no telemetry.
+
+extra:
+  recipe-maintainers:
+    - mateopedersen

@@ -8,10 +8,16 @@ Application code often needs more than a month matrix: it needs explicit overflo
 
 ## Installation
 
-### Conda
+### Pixi
 
 ```sh
-conda install betacalendars::betacalendars-temporal
+pixi add --channel https://prefix.dev/mateopedersen/betacalendars betacalendars-temporal
+```
+
+### Conda or Mamba
+
+```sh
+conda install --override-channels -c https://prefix.dev/mateopedersen/betacalendars -c conda-forge betacalendars-temporal
 ```
 
 ### Python source checkout

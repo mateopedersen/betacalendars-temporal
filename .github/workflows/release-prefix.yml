@@ -1,0 +1,59 @@
+name: Publish to Prefix.dev
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out packaging workflow and recipe
+        uses: actions/checkout@v4
+
+      - name: Check out the released source
+        uses: actions/checkout@v4
+        with:
+          ref: v0.1.0
+          path: source
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Test the tagged Python source
+        working-directory: source
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ".[dev]"
+          ruff check .
+          ruff format --check .
+          mypy src/betacalendars
+          pytest
+
+      - name: Set up Rattler-Build
+        uses: prefix-dev/rattler-build-action@v0.2.34
+
+      - name: Build the pinned release source
+        run: rattler-build build --recipe recipe.yaml --channel conda-forge --output-dir output
+
+      - name: Test and record the Conda artifact
+        run: |
+          package_file="$(find output/noarch -maxdepth 1 -name 'betacalendars-temporal-0.1.0-*.conda' -print -quit)"
+          test -n "$package_file"
+          rattler-build test --channel conda-forge --package-file "$package_file"
+          sha256sum "$package_file"
+          echo "PACKAGE_FILE=$package_file" >> "$GITHUB_ENV"
+
+      - name: Upload with OIDC and Sigstore provenance
+        run: >-
+          rattler-build upload prefix
+          --channel mateopedersen/betacalendars
+          --generate-attestation
+          "$PACKAGE_FILE"
