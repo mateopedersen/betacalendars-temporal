@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import io
 import json
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -41,13 +43,27 @@ def sanitize(archive: Path) -> None:
             removed.add(direct_url.relative_to(root).as_posix())
             direct_url.unlink()
 
+        site_packages = root / "site-packages"
+        removed_records = {
+            Path(item).relative_to(site_packages.relative_to(root)).as_posix()
+            for item in removed
+            if Path(item).is_relative_to(site_packages.relative_to(root))
+        }
         for record in root.glob("site-packages/*.dist-info/RECORD"):
-            _remove_record_entries(record, removed)
+            _remove_record_entries(
+                record, removed_records | {f"{record.parent.name}/direct_url.json"}
+            )
 
         paths_file = root / "info" / "paths.json"
         if paths_file.exists():
             data = json.loads(paths_file.read_text(encoding="utf-8"))
             data["paths"] = [item for item in data["paths"] if item["_path"] not in removed]
+            for item in data["paths"]:
+                path = root / item["_path"]
+                if item["_path"].endswith(".dist-info/RECORD") and path.exists():
+                    contents = path.read_bytes()
+                    item["sha256"] = hashlib.sha256(contents).hexdigest()
+                    item["size_in_bytes"] = len(contents)
             paths_file.write_text(
                 json.dumps(data, indent=2, sort_keys=True) + "\n", encoding="utf-8"
             )
@@ -69,10 +85,13 @@ def sanitize(archive: Path) -> None:
                     encoding="utf-8",
                 )
 
+        output_folder = Path(temp) / "output"
+        output_folder.mkdir()
         subprocess.run(
-            ["cph", "create", str(root), archive.name, "--out-folder", str(archive.parent)],
+            ["cph", "create", str(root), archive.name, "--out-folder", str(output_folder)],
             check=True,
         )
+        shutil.move(output_folder / archive.name, archive)
 
 
 if __name__ == "__main__":
